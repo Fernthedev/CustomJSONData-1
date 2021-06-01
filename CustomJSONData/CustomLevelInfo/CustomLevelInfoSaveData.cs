@@ -8,15 +8,15 @@
 
     public class CustomLevelInfoSaveData : StandardLevelInfoSaveData
     {
-        protected dynamic _customData;
+        protected IDictionary<string, object> _customData;
 
-        public dynamic customData => _customData;
+        public IDictionary<string, object> customData => _customData;
 
-        public Dictionary<string, dynamic> beatmapCustomDatasByFilename { get; protected set; }
+        public Dictionary<string, IDictionary<string, object>> beatmapCustomDatasByFilename { get; protected set; }
 
         public CustomLevelInfoSaveData(string songName, string songSubName, string songAuthorName, string levelAuthorName, float beatsPerMinute, float songTimeOffset,
                                        float shuffle, float shufflePeriod, float previewStartTime, float previewDuration, string songFilename, string coverImageFilename,
-                                       string environmentName, string allDirectionsEnvironmentName, DifficultyBeatmapSet[] difficultyBeatmapSets, dynamic customData, Dictionary<string, dynamic> beatmapCustomDatasByFilename)
+                                       string environmentName, string allDirectionsEnvironmentName, DifficultyBeatmapSet[] difficultyBeatmapSets, IDictionary<string, object> customData, Dictionary<string, IDictionary<string, object>> beatmapCustomDatasByFilename)
                                 : base(songName, songSubName, songAuthorName, levelAuthorName, beatsPerMinute, songTimeOffset, shuffle, shufflePeriod, previewStartTime,
                                         previewDuration, songFilename, coverImageFilename, environmentName, allDirectionsEnvironmentName, difficultyBeatmapSets)
         {
@@ -26,8 +26,8 @@
 
         public static StandardLevelInfoSaveData DeserializeFromJSONString(string stringData, StandardLevelInfoSaveData standardSaveData)
         {
-            Dictionary<string, dynamic> beatmapsByFilename = new Dictionary<string, dynamic>();
-            DifficultyCustomDatas customDatas = JsonConvert.DeserializeObject<DifficultyCustomDatas>(stringData, new ExpandoObjectConverter());
+            Dictionary<string, IDictionary<string, object>> beatmapsByFilename = new Dictionary<string, IDictionary<string, object>>();
+            DifficultyCustomDatas customDatas = JsonConvert.DeserializeObject<DifficultyCustomDatas>(stringData);
             DifficultyBeatmapSet[] customBeatmapSets = new DifficultyBeatmapSet[standardSaveData.difficultyBeatmapSets.Length];
             for (int i = 0; i < standardSaveData.difficultyBeatmapSets.Length; i++)
             {
@@ -51,11 +51,11 @@
 
         public new class DifficultyBeatmap : StandardLevelInfoSaveData.DifficultyBeatmap
         {
-            protected dynamic _customData;
+            protected IDictionary<string, object> _customData;
 
-            public dynamic customData => _customData;
+            public IDictionary<string, object> customData => _customData;
 
-            public DifficultyBeatmap(string difficultyName, int difficultyRank, string beatmapFilename, float noteJumpMovementSpeed, float noteJumpStartBeatOffset, dynamic customData)
+            public DifficultyBeatmap(string difficultyName, int difficultyRank, string beatmapFilename, float noteJumpMovementSpeed, float noteJumpStartBeatOffset, IDictionary<string, object> customData)
                               : base(difficultyName, difficultyRank, beatmapFilename, noteJumpMovementSpeed, noteJumpStartBeatOffset)
             {
                 _customData = customData;
@@ -68,8 +68,7 @@
 #pragma warning disable 0649
 
             [JsonProperty]
-            [JsonConverter(typeof(ExpandoObjectConverter))]
-            public dynamic _customData;
+            public IDictionary<string, object> _customData;
 
             [JsonProperty]
             public List<DifficultyBeatmapSet> _difficultyBeatmapSets;
@@ -85,8 +84,7 @@
             public class DifficultyBeatmap
             {
                 [JsonProperty]
-                [JsonConverter(typeof(ExpandoObjectConverter))]
-                public dynamic _customData;
+                public IDictionary<string, object> _customData;
             }
 
 #pragma warning restore 0649

@@ -1,4 +1,6 @@
-﻿namespace CustomJSONData
+﻿using JetBrains.Annotations;
+
+namespace CustomJSONData
 {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
@@ -7,11 +9,11 @@
     using System.Linq;
     using System.Runtime.CompilerServices;
     using TreeDict = System.Collections.Generic.IDictionary<string, object>;
-    using TreeType = System.Dynamic.ExpandoObject;
+    using TreeType = System.Collections.Generic.Dictionary<string, object>;
 
     /// <summary>
-    /// Utility functions for creating and manipulating Trees, which are dynamics guaranteed to have the following properties:
-    /// - Implements all the features of the ExpandoObject class that would be visible to standard C# code (notably including implementation of<see cref="IDictionary{string, object}"/>).
+    /// Utility functions for creating and manipulating Trees, which are <see cref="Dictionary{string, object}" /> guaranteed to have the following properties:
+    /// - Implements all the features of the Dictionary class that would be visible to standard C# code (notably including implementation of<see cref="IDictionary{string, object}"/>).
     /// - No members of a Tree will be Trees with the original Tree as a member.
     /// - All Trees will be of the same underlying type; however, the actual type used is an implementation detail and should not be relied upon.
     ///
@@ -25,30 +27,28 @@
         /// Used to construct a new Tree, as it does not exist as a proper class (by design).
         /// </summary>
         /// <returns>An empty Tree.</returns>
-        public static dynamic Tree() => new TreeType();
+        public static TreeDict Tree() => new TreeType();
 
         /// <summary>
         /// Used to more easily construct a Tree with an initial set of members.
         /// </summary>
         /// <param name="contents">The members to initialize the new Tree with.</param>
         /// <returns>A new Tree containing the provided members.</returns>
-        public static dynamic Tree(List<KeyValuePair<string, object>> contents)
+        public static TreeDict Tree(List<KeyValuePair<string, object>> contents)
         {
-            TreeDict t = (TreeDict)Tree();
+            TreeDict t = (TreeDict) Tree();
             foreach (KeyValuePair<string, object> p in contents)
             {
                 t[p.Key] = p.Value;
             }
+
             return t;
         }
 
-        public static dynamic fromJSON(string json)
+        public static TreeDict fromJSON(string json)
         {
-            JsonSerializerSettings settings = new JsonSerializerSettings
-            {
-                Converters = new List<JsonConverter>() { new ExpandoObjectConverter() }
-            };
-            return JsonConvert.DeserializeObject(json, settings);
+            JsonSerializerSettings settings = new JsonSerializerSettings();
+            return JsonConvert.DeserializeObject<TreeType>(json, settings);
         }
 
         /// <summary>
@@ -56,13 +56,14 @@
         /// </summary>
         /// <param name="t">The tree to copy.</param>
         /// <returns>A copy of t.</returns>
-        public static dynamic copy(TreeType t)
+        public static TreeDict copy(TreeDict t)
         {
-            dynamic result = Tree();
+            TreeDict result = Tree();
             foreach (KeyValuePair<string, object> p in t)
             {
-                (result as TreeDict)[p.Key] = p.Value is TreeType ? copy(p.Value as TreeType) : p.Value;
+                result[p.Key] = p.Value is TreeType ? copy(p.Value as TreeType) : p.Value;
             }
+
             return result;
         }
 
@@ -71,21 +72,21 @@
         /// </summary>
         /// <seealso cref="copy(TreeType)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static dynamic Copy(this TreeType t) => copy(t);
+        public static TreeDict Copy(this TreeType t) => copy(t);
 
         /// <summary>
         /// Makes a shallow copy of a tree - all members of reference types, including sub-Trees, will refer to the same objects as in <paramref name="t"/>.
         /// </summary>
         /// <param name="t">The tree to copy.</param>
         /// <returns>A copy of <paramref name="t"/>.</returns>
-        public static dynamic shallowCopy(TreeType t) => Tree(t.ToList());
+        public static TreeDict shallowCopy(TreeType t) => Tree(t.ToList());
 
         /// <summary>
         /// The extension method form of <see cref="shallowCopy(TreeType)"/>
         /// </summary>
         /// <seealso cref="shallowCopy(TreeType)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static dynamic ShallowCopy(this TreeType t) => shallowCopy(t);
+        public static TreeDict ShallowCopy(this TreeType t) => shallowCopy(t);
 
         /// <summary>
         /// Safely accesses a member of a tree, returning null if the member does not exist or if <paramref name="tree"/> is null.
@@ -93,10 +94,54 @@
         /// <param name="tree">The tree to access a member of</param>
         /// <param name="memberName">The name of the member to be accessed</param>
         /// <returns>The value of <paramref name="tree"/>'s member <paramref name="memberName"/>, or null if tree is null or no such member exists</returns>
-        public static dynamic at(TreeDict tree, string memberName)
+        public static object at(TreeDict tree, string memberName)
         {
             if (tree == null) return null;
             tree.TryGetValue(memberName, out object result);
+            return result;
+        }
+
+        // TODO: This is probably bad, serializing only to deserialize. This is gonna need fixing either with more breaking changes to mods or just avoiding it.
+        /// <summary>
+        /// Safely accesses a member of a tree, returning null if the member does not exist or if <paramref name="tree"/> is null.
+        /// </summary>
+        /// <param name="tree">The tree to access a member of</param>
+        /// <param name="memberName">The name of the member to be accessed</param>
+        /// <returns>The value of <paramref name="tree"/>'s member <paramref name="memberName"/>, or null if tree is null or no such member exists</returns>
+        [CanBeNull]
+        public static T at<T>(TreeDict tree, string memberName)
+        {
+            if (tree == null)
+                return default;
+
+            tree.TryGetValue(memberName, out object result);
+            string resultS;
+
+            switch (result)
+            {
+                case T rT:
+                    return rT;
+                case string rs:
+                    resultS = rs;
+                    break;
+                default:
+                    resultS = JsonConvert.SerializeObject(result);
+                    break;
+            }
+
+            return JsonConvert.DeserializeObject<T>(resultS);
+        }
+
+        /// <summary>
+        /// Safely accesses a member of a tree, returning null if the member does not exist or if <paramref name="tree"/> is null.
+        /// </summary>
+        /// <param name="tree">The tree to access a member of</param>
+        /// <param name="memberName">The name of the member to be accessed</param>
+        /// <returns>The value of <paramref name="tree"/>'s member <paramref name="memberName"/>, or null if tree is null or no such member exists</returns>
+        public static TreeDict at(Dictionary<string, TreeDict> tree, string memberName)
+        {
+            if (tree == null) return null;
+            tree.TryGetValue(memberName, out TreeDict result);
             return result;
         }
 
@@ -105,12 +150,12 @@
         /// </summary>
         /// <seealso cref="at(TreeDict, string)" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static dynamic At(this TreeDict t, string m) => at(t, m);
+        public static object At(this TreeDict t, string m) => at(t, m);
 
         /// <summary>
         /// Safely accesses a member of a tree, returning <paramref name="defaultValue"/> if the member does not exist or if <paramref name="tree"/> is null.
         /// If <typeparamref name="T"/> is a value type and you want <paramref name="defaultValue"/> to be null, use <see cref="getNullable{T}(TreeDict, string, T?)"/>.
-        /// If you want <typeparamref name="T"/> to be Tree, use <see cref="getTree(TreeDict, string, dynamic)"/>.
+        /// If you want <typeparamref name="T"/> to be Tree, use <see cref="getTree(TreeDict, string, object)"/>.
         /// </summary>
         /// <typeparam name="T">The type of the member to be returned</typeparam>
         /// <param name="tree">The tree to access a member of</param>
@@ -120,7 +165,7 @@
         public static T get<T>(TreeDict tree, string memberName, T defaultValue = default)
         {
             if (tree == null) return defaultValue;
-            if (!tree.TryGetValue(memberName, out dynamic result))
+            if (!tree.TryGetValue(memberName, out object result))
                 return defaultValue;
             try
             {
@@ -151,7 +196,7 @@
         public static T? getNullable<T>(TreeDict tree, string memberName, T? defaultValue = null) where T : struct
         {
             if (tree == null) return defaultValue;
-            if (!tree.TryGetValue(memberName, out dynamic result))
+            if (!tree.TryGetValue(memberName, out object result))
                 return defaultValue;
             try
             {
@@ -178,10 +223,10 @@
         /// <param name="memberName">The name of the member to be accessed</param>
         /// <param name="defaultValue">The value to be returned if <paramref name="tree"/> is null or has no member <paramref name="memberName"/></param>
         /// <returns>The value of <paramref name="tree"/>'s member <paramref name="memberName"/>, or <paramref name="defaultValue"/> if tree is null or no such member exists</returns>
-        public static dynamic getTree(TreeDict tree, string memberName, dynamic defaultValue = null)
+        public static object getTree(TreeDict tree, string memberName, object defaultValue = null)
         {
             if (tree == null) return defaultValue;
-            if (!tree.TryGetValue(memberName, out dynamic result))
+            if (!tree.TryGetValue(memberName, out object result))
                 return defaultValue;
             return result;
         }
@@ -252,7 +297,7 @@
         /// <param name="memberName">The name of the member to be accessed</param>
         /// <param name="defaultValue">The value to be returned if <paramref name="tree"/> is null or has no member <paramref name="memberName"/></param>
         /// <returns>The value of <paramref name="tree"/>'s member <paramref name="memberName"/>, or <paramref name="defaultValue"/> if tree is null or no such member exists</returns>
-        public static dynamic getTree(object tree, string memberName, dynamic defaultValue = null)
+        public static object getTree(object tree, string memberName, object defaultValue = null)
         {
             try
             {
@@ -278,16 +323,16 @@
         /// <param name="copySubtrees">If true, all Trees encountered as members in only one of highPriority and lowPriority will be copied as with copy(Tree) rather than copied by reference.
         /// Increases performance cost by the cost of those copies.</param>
         /// <returns>A tree consisting of highPriority and lowPriority merged</returns>
-        public static dynamic mergeTrees(TreeType highPriority, TreeType lowPriority, bool copySubtrees = true)
+        public static TreeDict mergeTrees(TreeType highPriority, TreeType lowPriority, bool copySubtrees = true)
         {
             if (highPriority == null) return lowPriority;
             if (lowPriority == null) return highPriority;
-            dynamic result = copySubtrees ? copy(lowPriority) : shallowCopy(lowPriority);
+            TreeDict result = copySubtrees ? copy(lowPriority) : shallowCopy(lowPriority);
             foreach (KeyValuePair<string, object> pair in highPriority)
             {
                 if (pair.Value is TreeType)
                 {
-                    if (at((TreeDict)lowPriority, pair.Key) is TreeType)
+                    if (at(lowPriority, pair.Key) is TreeType)
                     {
                         result[pair.Key] = mergeTrees(pair.Value as TreeType, ((TreeDict)lowPriority)[pair.Key] as TreeType);
                     }
@@ -306,7 +351,7 @@
         /// </summary>
         /// <seealso cref="mergeTrees(TreeType, TreeType, bool)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static dynamic Merge(this TreeType highPriority, TreeType lowPriority, bool copySubtrees = true) => mergeTrees(highPriority, lowPriority, copySubtrees);
+        public static TreeDict Merge(this TreeType highPriority, TreeType lowPriority, bool copySubtrees = true) => mergeTrees(highPriority, lowPriority, copySubtrees);
 
         /// <summary>
         /// Maps an <see cref="Action{Tree}"/> over a tree and its subtrees.
@@ -314,7 +359,7 @@
         /// </summary>
         /// <param name="tree">The tree to map over</param>
         /// <param name="action">The Action to map over the tree</param>
-        public static void map(TreeType tree, Action<dynamic> action)
+        public static void map(TreeType tree, Action<TreeDict> action)
         {
             action(tree);
             foreach (KeyValuePair<string, object> pair in tree)
@@ -327,11 +372,11 @@
         }
 
         /// <summary>
-        /// An extension method form of <see cref="map(TreeType, Action{dynamic})"/>.
+        /// An extension method form of <see cref="map(TreeType, Action{object})"/>.
         /// </summary>
-        /// <seealso cref="map(TreeType, Action{dynamic})"/>
+        /// <seealso cref="map(TreeType, Action{object})"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Map(this TreeType t, Action<dynamic> a) => map(t, a);
+        public static void Map(this TreeType t, Action<TreeDict> a) => map(t, a);
 
         /// <summary>
         /// Maps a <see cref="Func{Tree, Tree}"/> over <paramref name="tree"/> and its subtrees, replacing those subtrees with the result of mapping <paramref name="func"/> over them.
@@ -341,7 +386,7 @@
         /// <param name="func">The transformation to apply to each subtree.</param>
         /// <param name="doCopy">Whether to copy the tree before transforming it.</param>
         /// <returns></returns>
-        public static dynamic map(TreeType tree, Func<dynamic, dynamic> func, bool doCopy = true)
+        public static TreeDict map(TreeType tree, Func<TreeDict, TreeType> func, bool doCopy = true)
         {
             TreeType newTree = func(doCopy ? copy(tree) : tree);
             List<string> treeKeys = new List<string>();
@@ -360,11 +405,11 @@
         }
 
         /// <summary>
-        /// An extension method form of <see cref="map(TreeType, Func{dynamic, dynamic}, bool)"/>.
+        /// An extension method form of <see cref="map(TreeType, Func{TreeDict, TreeType}, bool)"/>.
         /// </summary>
-        /// <seealso cref="map(TreeType, Func{dynamic, dynamic}, bool)"/>
+        /// <seealso cref="map(TreeType, Func{TreeDict, TreeType}, bool)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Map(this TreeType t, Func<dynamic, dynamic> f, bool c = true) => map(t, f, c);
+        public static void Map(this TreeType t, Func<TreeDict, TreeType> f, bool c = true) => map(t, f, c);
 
         /// <summary>
         /// Checks whether an object is of the right type to be a Tree. Does *not* validate whether the object is a *valid* Tree; use <see cref="isTree(object)"/> for this purpose.

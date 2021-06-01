@@ -27,7 +27,7 @@
         public List<CustomEventData> customEvents { get; protected set; } = new List<CustomEventData>();
 
         [JsonIgnore]
-        public dynamic customData { get; protected set; }
+        public IDictionary<string, object> customData { get; protected set; }
 
         [Serializable]
         private class CustomEventsSaveData
@@ -52,7 +52,6 @@
             JsonSerializerSettings settings = new JsonSerializerSettings
             {
                 NullValueHandling = NullValueHandling.Ignore,
-                Converters = new List<JsonConverter>() { new ExpandoObjectConverter() }
             };
             CustomBeatmapSaveData beatmap = JsonConvert.DeserializeObject<CustomBeatmapSaveData>(stringData, settings);
 
@@ -80,8 +79,7 @@
         }
 
         [JsonProperty]
-        [JsonConverter(typeof(ExpandoObjectConverter))]
-        protected dynamic _customData
+        protected IDictionary<string, object> _customData
         {
             get => customData;
             set => customData = value;
@@ -130,7 +128,7 @@
             }
 
             [JsonIgnore]
-            public dynamic customData => _customData;
+            public IDictionary<string, object> customData => _customData;
 
             [JsonProperty]
             protected new float _time
@@ -154,14 +152,13 @@
             }
 
             [JsonProperty]
-            [JsonConverter(typeof(ExpandoObjectConverter))]
-            protected dynamic _customData;
+            protected IDictionary<string, object> _customData;
         }
 
         [Serializable]
         public class CustomEventData : ITime
         {
-            public CustomEventData(float time, string type, dynamic data)
+            public CustomEventData(float time, string type, IDictionary<string, object> data)
             {
                 _time = time;
                 _type = type;
@@ -175,7 +172,7 @@
             public string type => _type;
 
             [JsonIgnore]
-            public dynamic data => _data;
+            public IDictionary<string, object> data => _data;
 
             public void MoveTime(float offset)
             {
@@ -189,8 +186,7 @@
             protected string _type;
 
             [JsonProperty]
-            [JsonConverter(typeof(ExpandoObjectConverter))]
-            protected dynamic _data;
+            protected IDictionary<string, object> _data;
         }
 
         [Serializable]
@@ -201,7 +197,7 @@
             }
 
             [JsonIgnore]
-            public dynamic customData => _customData;
+            public IDictionary<string, object> customData => _customData;
 
             [JsonProperty]
             protected new float _time
@@ -239,8 +235,7 @@
             }
 
             [JsonProperty]
-            [JsonConverter(typeof(ExpandoObjectConverter))]
-            protected dynamic _customData;
+            protected IDictionary<string, object> _customData;
         }
 
         [Serializable]
@@ -251,7 +246,7 @@
             }
 
             [JsonIgnore]
-            public dynamic customData => _customData;
+            public IDictionary<string, object> customData => _customData;
 
             [JsonProperty]
             protected new float _time
@@ -282,8 +277,7 @@
             }
 
             [JsonProperty]
-            [JsonConverter(typeof(ExpandoObjectConverter))]
-            protected dynamic _customData;
+            protected IDictionary<string, object> _customData;
         }
 
         /*[Serializable]
@@ -295,7 +289,7 @@
             }
 
             [JsonIgnore]
-            public dynamic customData => _customData;
+            public IDictionary<string, object> customData => _customData;
 
             [JsonProperty]
             protected new float _time
@@ -340,8 +334,7 @@
             }
 
             [JsonProperty]
-            [JsonConverter(typeof(ExpandoObjectConverter))]
-            protected dynamic _customData;
+            protected IDictionary<string, object> _customData;
         }*/
 
         [Serializable]
@@ -352,7 +345,7 @@
             }
 
             [JsonIgnore]
-            public dynamic customData => _customData;
+            public IDictionary<string, object> customData => _customData;
 
             [JsonProperty]
             protected new float _time
@@ -390,8 +383,7 @@
             }
 
             [JsonProperty]
-            [JsonConverter(typeof(ExpandoObjectConverter))]
-            protected dynamic _customData;
+            protected IDictionary<string, object> _customData;
         }
 
         // _customData for these are currently thrown away, there is not currently a way to retrieve them
@@ -418,7 +410,7 @@
             }
 
             [JsonIgnore]
-            public dynamic customData => _customData;
+            public IDictionary<string, object> customData => _customData;
 
             [JsonProperty]
             protected new string _keyword
@@ -435,8 +427,7 @@
             }
 
             [JsonProperty]
-            [JsonConverter(typeof(ExpandoObjectConverter))]
-            protected dynamic _customData;
+            protected IDictionary<string, object> _customData;
         }
     }
 }

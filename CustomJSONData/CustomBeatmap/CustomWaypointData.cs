@@ -1,10 +1,12 @@
-﻿namespace CustomJSONData.CustomBeatmap
+﻿using System.Collections.Generic;
+
+namespace CustomJSONData.CustomBeatmap
 {
     public class CustomWaypointData : WaypointData
     {
-        public dynamic customData { get; private set; }
+        public IDictionary<string, object> customData { get; private set; }
 
-        public CustomWaypointData(float time, int lineIndex, NoteLineLayer noteLineLayer, OffsetDirection offsetDirection, dynamic customData) : base(time, lineIndex, noteLineLayer, offsetDirection)
+        public CustomWaypointData(float time, int lineIndex, NoteLineLayer noteLineLayer, OffsetDirection offsetDirection, IDictionary<string, object> customData) : base(time, lineIndex, noteLineLayer, offsetDirection)
         {
             this.customData = customData;
         }

@@ -10,9 +10,9 @@
         public static event Action<CustomBeatmapData> CustomBeatmapDataWasCreated;
 
         public List<CustomEventData> customEventsData { get; }
-        public dynamic customData { get; private set; }
-        public dynamic beatmapCustomData { get; private set; }
-        public dynamic levelCustomData { get; private set; }
+        public IDictionary<string, object> customData { get; private set; }
+        public IDictionary<string, object> beatmapCustomData { get; private set; }
+        public IDictionary<string, object> levelCustomData { get; private set; }
 
         private static MethodInfo CopyBeatmapObjectsMethod
         {
@@ -120,12 +120,12 @@
             customEventsData.Add(customEventData);
         }
 
-        internal void SetCustomData(dynamic customData)
+        internal void SetCustomData(IDictionary<string, object> customData)
         {
             this.customData = customData;
         }
 
-        internal void SetLevelCustomData(dynamic beatmapCustomData, dynamic levelCustomData)
+        internal void SetLevelCustomData(IDictionary<string, object> beatmapCustomData, IDictionary<string, object> levelCustomData)
         {
             this.beatmapCustomData = beatmapCustomData;
             this.levelCustomData = levelCustomData;

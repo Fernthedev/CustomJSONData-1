@@ -150,11 +150,11 @@
             return instructionList.AsEnumerable();
         }
 
-        private static dynamic GetNoteCustomData(BeatmapSaveData.NoteData noteSaveData)
+        private static IDictionary<string, object> GetNoteCustomData(BeatmapSaveData.NoteData noteSaveData)
         {
             if (noteSaveData is CustomBeatmapSaveData.NoteData customNoteSaveData)
             {
-                dynamic customData = customNoteSaveData.customData;
+                IDictionary<string, object> customData = customNoteSaveData.customData;
                 if (customData != null)
                 {
                     return customData;
@@ -164,11 +164,11 @@
             return Tree();
         }
 
-        private static dynamic GetWaypointCustomData(BeatmapSaveData.WaypointData waypointData)
+        private static IDictionary<string, object> GetWaypointCustomData(BeatmapSaveData.WaypointData waypointData)
         {
             if (waypointData is CustomBeatmapSaveData.WaypointData customWaypointData)
             {
-                dynamic customData = customWaypointData.customData;
+                IDictionary<string, object> customData = customWaypointData.customData;
                 if (customData != null)
                 {
                     return customData;
@@ -192,11 +192,11 @@
             return Tree();
         }*/
 
-        private static dynamic GetObstacleCustomData(BeatmapSaveData.ObstacleData obstacleSaveData)
+        private static IDictionary<string, object> GetObstacleCustomData(BeatmapSaveData.ObstacleData obstacleSaveData)
         {
             if (obstacleSaveData is CustomBeatmapSaveData.ObstacleData customObstacleSaveData)
             {
-                dynamic customData = customObstacleSaveData.customData;
+                IDictionary<string, object> customData = customObstacleSaveData.customData;
                 if (customData != null)
                 {
                     return customData;
@@ -206,11 +206,11 @@
             return Tree();
         }
 
-        private static dynamic GetEventCustomData(BeatmapSaveData.EventData eventSaveData)
+        private static IDictionary<string, object> GetEventCustomData(BeatmapSaveData.EventData eventSaveData)
         {
             if (eventSaveData is CustomBeatmapSaveData.EventData customEventSaveData)
             {
-                dynamic customData = customEventSaveData.customData;
+                IDictionary<string, object> customData = customEventSaveData.customData;
                 if (customData != null)
                 {
                     return customData;
@@ -220,7 +220,7 @@
             return Tree();
         }
 
-        private static CustomBeatmapData CreateCustomBeatmapData(BeatmapDataLoader beatmapDataLoader, dynamic RawBPMChanges, float shuffle, float shufflePeriod)
+        private static CustomBeatmapData CreateCustomBeatmapData(BeatmapDataLoader beatmapDataLoader, IDictionary<string, object> RawBPMChanges, float shuffle, float shufflePeriod)
         {
             List<CustomBeatmapSaveData.CustomEventData> customEventsSaveData = customBeatmapSaveData.customEvents;
             customEventsSaveData = customEventsSaveData.OrderBy(x => x.time).ToList();
