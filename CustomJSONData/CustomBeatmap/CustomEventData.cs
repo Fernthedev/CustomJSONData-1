@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace CustomJSONData.CustomBeatmap
 {
@@ -6,9 +7,9 @@ namespace CustomJSONData.CustomBeatmap
     {
         public string type { get; protected set; }
         public float time { get; protected set; }
-        public IDictionary<string, object> data { get; protected set; }
+        public JObject data { get; protected set; }
 
-        public CustomEventData(float time, string type, IDictionary<string, object> data)
+        public CustomEventData(float time, string type, JObject data)
         {
             this.time = time;
             this.type = type;

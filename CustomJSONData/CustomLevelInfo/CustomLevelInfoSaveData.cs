@@ -1,4 +1,6 @@
-﻿namespace CustomJSONData.CustomLevelInfo
+﻿using Newtonsoft.Json.Linq;
+
+namespace CustomJSONData.CustomLevelInfo
 {
     using System;
     using System.Collections.Generic;
@@ -8,15 +10,15 @@
 
     public class CustomLevelInfoSaveData : StandardLevelInfoSaveData
     {
-        protected IDictionary<string, object> _customData;
+        protected JObject _customData;
 
-        public IDictionary<string, object> customData => _customData;
+        public JObject customData => _customData;
 
-        public Dictionary<string, IDictionary<string, object>> beatmapCustomDatasByFilename { get; protected set; }
+        public Dictionary<string, JObject> beatmapCustomDatasByFilename { get; protected set; }
 
         public CustomLevelInfoSaveData(string songName, string songSubName, string songAuthorName, string levelAuthorName, float beatsPerMinute, float songTimeOffset,
                                        float shuffle, float shufflePeriod, float previewStartTime, float previewDuration, string songFilename, string coverImageFilename,
-                                       string environmentName, string allDirectionsEnvironmentName, DifficultyBeatmapSet[] difficultyBeatmapSets, IDictionary<string, object> customData, Dictionary<string, IDictionary<string, object>> beatmapCustomDatasByFilename)
+                                       string environmentName, string allDirectionsEnvironmentName, DifficultyBeatmapSet[] difficultyBeatmapSets, JObject customData, Dictionary<string, JObject> beatmapCustomDatasByFilename)
                                 : base(songName, songSubName, songAuthorName, levelAuthorName, beatsPerMinute, songTimeOffset, shuffle, shufflePeriod, previewStartTime,
                                         previewDuration, songFilename, coverImageFilename, environmentName, allDirectionsEnvironmentName, difficultyBeatmapSets)
         {
@@ -26,7 +28,7 @@
 
         public static StandardLevelInfoSaveData DeserializeFromJSONString(string stringData, StandardLevelInfoSaveData standardSaveData)
         {
-            Dictionary<string, IDictionary<string, object>> beatmapsByFilename = new Dictionary<string, IDictionary<string, object>>();
+            Dictionary<string, JObject> beatmapsByFilename = new Dictionary<string, JObject>();
             DifficultyCustomDatas customDatas = JsonConvert.DeserializeObject<DifficultyCustomDatas>(stringData);
             DifficultyBeatmapSet[] customBeatmapSets = new DifficultyBeatmapSet[standardSaveData.difficultyBeatmapSets.Length];
             for (int i = 0; i < standardSaveData.difficultyBeatmapSets.Length; i++)
@@ -51,11 +53,11 @@
 
         public new class DifficultyBeatmap : StandardLevelInfoSaveData.DifficultyBeatmap
         {
-            protected IDictionary<string, object> _customData;
+            protected JObject _customData;
 
-            public IDictionary<string, object> customData => _customData;
+            public JObject customData => _customData;
 
-            public DifficultyBeatmap(string difficultyName, int difficultyRank, string beatmapFilename, float noteJumpMovementSpeed, float noteJumpStartBeatOffset, IDictionary<string, object> customData)
+            public DifficultyBeatmap(string difficultyName, int difficultyRank, string beatmapFilename, float noteJumpMovementSpeed, float noteJumpStartBeatOffset, JObject customData)
                               : base(difficultyName, difficultyRank, beatmapFilename, noteJumpMovementSpeed, noteJumpStartBeatOffset)
             {
                 _customData = customData;
@@ -68,7 +70,7 @@
 #pragma warning disable 0649
 
             [JsonProperty]
-            public IDictionary<string, object> _customData;
+            public JObject _customData;
 
             [JsonProperty]
             public List<DifficultyBeatmapSet> _difficultyBeatmapSets;
@@ -84,7 +86,7 @@
             public class DifficultyBeatmap
             {
                 [JsonProperty]
-                public IDictionary<string, object> _customData;
+                public JObject _customData;
             }
 
 #pragma warning restore 0649

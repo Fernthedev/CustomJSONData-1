@@ -1,4 +1,6 @@
-﻿namespace CustomJSONData.CustomBeatmap
+﻿using Newtonsoft.Json.Linq;
+
+namespace CustomJSONData.CustomBeatmap
 {
     using System;
     using System.Collections.Generic;
@@ -10,9 +12,9 @@
         public static event Action<CustomBeatmapData> CustomBeatmapDataWasCreated;
 
         public List<CustomEventData> customEventsData { get; }
-        public IDictionary<string, object> customData { get; private set; }
-        public IDictionary<string, object> beatmapCustomData { get; private set; }
-        public IDictionary<string, object> levelCustomData { get; private set; }
+        public JObject customData { get; private set; }
+        public JObject beatmapCustomData { get; private set; }
+        public JObject levelCustomData { get; private set; }
 
         private static MethodInfo CopyBeatmapObjectsMethod
         {
@@ -120,12 +122,12 @@
             customEventsData.Add(customEventData);
         }
 
-        internal void SetCustomData(IDictionary<string, object> customData)
+        internal void SetCustomData(JObject customData)
         {
             this.customData = customData;
         }
 
-        internal void SetLevelCustomData(IDictionary<string, object> beatmapCustomData, IDictionary<string, object> levelCustomData)
+        internal void SetLevelCustomData(JObject beatmapCustomData, JObject levelCustomData)
         {
             this.beatmapCustomData = beatmapCustomData;
             this.levelCustomData = levelCustomData;

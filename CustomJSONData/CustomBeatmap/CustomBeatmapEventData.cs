@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace CustomJSONData.CustomBeatmap
 {
     public class CustomBeatmapEventData : BeatmapEventData
     {
-        public IDictionary<string, object> customData { get; private set; }
+        public JObject customData { get; private set; }
 
-        public CustomBeatmapEventData(float time, BeatmapEventType type, int value, IDictionary<string, object> customData) : base(time, type, value)
+        public CustomBeatmapEventData(float time, BeatmapEventType type, int value, JObject customData) : base(time, type, value)
         {
             this.customData = customData;
         }

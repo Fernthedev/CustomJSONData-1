@@ -1,4 +1,6 @@
-﻿namespace CustomJSONData.CustomBeatmap
+﻿using Newtonsoft.Json.Linq;
+
+namespace CustomJSONData.CustomBeatmap
 {
     using System;
     using System.Collections.Generic;
@@ -27,7 +29,7 @@
         public List<CustomEventData> customEvents { get; protected set; } = new List<CustomEventData>();
 
         [JsonIgnore]
-        public IDictionary<string, object> customData { get; protected set; }
+        public JObject customData { get; protected set; }
 
         [Serializable]
         private class CustomEventsSaveData
@@ -79,7 +81,7 @@
         }
 
         [JsonProperty]
-        protected IDictionary<string, object> _customData
+        protected JObject _customData
         {
             get => customData;
             set => customData = value;
@@ -128,7 +130,7 @@
             }
 
             [JsonIgnore]
-            public IDictionary<string, object> customData => _customData;
+            public JObject customData => _customData;
 
             [JsonProperty]
             protected new float _time
@@ -152,13 +154,13 @@
             }
 
             [JsonProperty]
-            protected IDictionary<string, object> _customData;
+            protected JObject _customData;
         }
 
         [Serializable]
         public class CustomEventData : ITime
         {
-            public CustomEventData(float time, string type, IDictionary<string, object> data)
+            public CustomEventData(float time, string type, JObject data)
             {
                 _time = time;
                 _type = type;
@@ -172,7 +174,7 @@
             public string type => _type;
 
             [JsonIgnore]
-            public IDictionary<string, object> data => _data;
+            public JObject data => _data;
 
             public void MoveTime(float offset)
             {
@@ -186,7 +188,7 @@
             protected string _type;
 
             [JsonProperty]
-            protected IDictionary<string, object> _data;
+            protected JObject _data;
         }
 
         [Serializable]
@@ -197,7 +199,7 @@
             }
 
             [JsonIgnore]
-            public IDictionary<string, object> customData => _customData;
+            public JObject customData => _customData;
 
             [JsonProperty]
             protected new float _time
@@ -235,7 +237,7 @@
             }
 
             [JsonProperty]
-            protected IDictionary<string, object> _customData;
+            protected JObject _customData;
         }
 
         [Serializable]
@@ -246,7 +248,7 @@
             }
 
             [JsonIgnore]
-            public IDictionary<string, object> customData => _customData;
+            public JObject customData => _customData;
 
             [JsonProperty]
             protected new float _time
@@ -277,7 +279,7 @@
             }
 
             [JsonProperty]
-            protected IDictionary<string, object> _customData;
+            protected JObject _customData;
         }
 
         /*[Serializable]
@@ -289,7 +291,7 @@
             }
 
             [JsonIgnore]
-            public IDictionary<string, object> customData => _customData;
+            public JObject customData => _customData;
 
             [JsonProperty]
             protected new float _time
@@ -334,7 +336,7 @@
             }
 
             [JsonProperty]
-            protected IDictionary<string, object> _customData;
+            protected JObject _customData;
         }*/
 
         [Serializable]
@@ -345,7 +347,7 @@
             }
 
             [JsonIgnore]
-            public IDictionary<string, object> customData => _customData;
+            public JObject customData => _customData;
 
             [JsonProperty]
             protected new float _time
@@ -383,7 +385,7 @@
             }
 
             [JsonProperty]
-            protected IDictionary<string, object> _customData;
+            protected JObject _customData;
         }
 
         // _customData for these are currently thrown away, there is not currently a way to retrieve them
@@ -410,7 +412,7 @@
             }
 
             [JsonIgnore]
-            public IDictionary<string, object> customData => _customData;
+            public JObject customData => _customData;
 
             [JsonProperty]
             protected new string _keyword
@@ -427,7 +429,7 @@
             }
 
             [JsonProperty]
-            protected IDictionary<string, object> _customData;
+            protected JObject _customData;
         }
     }
 }

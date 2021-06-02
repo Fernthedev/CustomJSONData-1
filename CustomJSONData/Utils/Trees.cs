@@ -1,4 +1,6 @@
 ﻿using JetBrains.Annotations;
+using Newtonsoft.Json.Linq;
+using ArrayList = System.Collections.ArrayList;
 
 namespace CustomJSONData
 {
@@ -8,8 +10,8 @@ namespace CustomJSONData
     using System.Collections.Generic;
     using System.Linq;
     using System.Runtime.CompilerServices;
-    using TreeDict = System.Collections.Generic.IDictionary<string, object>;
-    using TreeType = System.Collections.Generic.Dictionary<string, object>;
+    using TreeDict = JObject;
+    using TreeType = JObject;
 
     /// <summary>
     /// Utility functions for creating and manipulating Trees, which are <see cref="Dictionary{string, object}" /> guaranteed to have the following properties:
@@ -27,17 +29,33 @@ namespace CustomJSONData
         /// Used to construct a new Tree, as it does not exist as a proper class (by design).
         /// </summary>
         /// <returns>An empty Tree.</returns>
-        public static TreeDict Tree() => new TreeType();
+        public static TreeDict Tree() => new JObject();
 
         /// <summary>
         /// Used to more easily construct a Tree with an initial set of members.
         /// </summary>
         /// <param name="contents">The members to initialize the new Tree with.</param>
         /// <returns>A new Tree containing the provided members.</returns>
-        public static TreeDict Tree(List<KeyValuePair<string, object>> contents)
+        public static JObject Tree(IEnumerable<KeyValuePair<string, object>> contents)
         {
-            TreeDict t = (TreeDict) Tree();
+            TreeDict t = Tree();
             foreach (KeyValuePair<string, object> p in contents)
+            {
+                t[p.Key] = JToken.FromObject(p.Value);
+            }
+
+            return t;
+        }
+
+        /// <summary>
+        /// Used to more easily construct a Tree with an initial set of members.
+        /// </summary>
+        /// <param name="contents">The members to initialize the new Tree with.</param>
+        /// <returns>A new Tree containing the provided members.</returns>
+        public static JObject Tree(TreeDict contents)
+        {
+            TreeDict t = Tree();
+            foreach (KeyValuePair<string, JToken> p in contents)
             {
                 t[p.Key] = p.Value;
             }
@@ -48,7 +66,7 @@ namespace CustomJSONData
         public static TreeDict fromJSON(string json)
         {
             JsonSerializerSettings settings = new JsonSerializerSettings();
-            return JsonConvert.DeserializeObject<TreeType>(json, settings);
+            return JsonConvert.DeserializeObject<TreeDict>(json, settings);
         }
 
         /// <summary>
@@ -56,12 +74,12 @@ namespace CustomJSONData
         /// </summary>
         /// <param name="t">The tree to copy.</param>
         /// <returns>A copy of t.</returns>
-        public static TreeDict copy(TreeDict t)
+        public static JObject copy(TreeDict t)
         {
             TreeDict result = Tree();
-            foreach (KeyValuePair<string, object> p in t)
+            foreach (KeyValuePair<string, JToken> p in t)
             {
-                result[p.Key] = p.Value is TreeType ? copy(p.Value as TreeType) : p.Value;
+                result[p.Key] = JToken.FromObject(p.Value is TreeType ? copy(p.Value as TreeType) : p.Value);
             }
 
             return result;
@@ -79,7 +97,7 @@ namespace CustomJSONData
         /// </summary>
         /// <param name="t">The tree to copy.</param>
         /// <returns>A copy of <paramref name="t"/>.</returns>
-        public static TreeDict shallowCopy(TreeType t) => Tree(t.ToList());
+        public static TreeDict shallowCopy(TreeType t) => Tree(t);
 
         /// <summary>
         /// The extension method form of <see cref="shallowCopy(TreeType)"/>
@@ -94,10 +112,10 @@ namespace CustomJSONData
         /// <param name="tree">The tree to access a member of</param>
         /// <param name="memberName">The name of the member to be accessed</param>
         /// <returns>The value of <paramref name="tree"/>'s member <paramref name="memberName"/>, or null if tree is null or no such member exists</returns>
-        public static object at(TreeDict tree, string memberName)
+        public static JToken at(TreeDict tree, string memberName)
         {
             if (tree == null) return null;
-            tree.TryGetValue(memberName, out object result);
+            tree.TryGetValue(memberName, out JToken result);
             return result;
         }
 
@@ -114,22 +132,17 @@ namespace CustomJSONData
             if (tree == null)
                 return default;
 
-            tree.TryGetValue(memberName, out object result);
-            string resultS;
+            tree.TryGetValue(memberName, out JToken result);
 
             switch (result)
             {
                 case T rT:
                     return rT;
-                case string rs:
-                    resultS = rs;
-                    break;
+                case JToken rs:
+                    return rs.ToObject<T>();
                 default:
-                    resultS = JsonConvert.SerializeObject(result);
-                    break;
+                    return default;
             }
-
-            return JsonConvert.DeserializeObject<T>(resultS);
         }
 
         /// <summary>
@@ -165,11 +178,11 @@ namespace CustomJSONData
         public static T get<T>(TreeDict tree, string memberName, T defaultValue = default)
         {
             if (tree == null) return defaultValue;
-            if (!tree.TryGetValue(memberName, out object result))
+            if (!tree.TryGetValue(memberName, out JToken result))
                 return defaultValue;
             try
             {
-                return (T)result;
+                return result.ToObject<T>();
             }
             catch
             {
@@ -196,11 +209,11 @@ namespace CustomJSONData
         public static T? getNullable<T>(TreeDict tree, string memberName, T? defaultValue = null) where T : struct
         {
             if (tree == null) return defaultValue;
-            if (!tree.TryGetValue(memberName, out object result))
+            if (!tree.TryGetValue(memberName, out JToken result))
                 return defaultValue;
             try
             {
-                return (T?)(T)result ?? defaultValue;
+                return (T?)result.ToObject<T>() ?? defaultValue;
             }
             catch
             {
@@ -223,10 +236,11 @@ namespace CustomJSONData
         /// <param name="memberName">The name of the member to be accessed</param>
         /// <param name="defaultValue">The value to be returned if <paramref name="tree"/> is null or has no member <paramref name="memberName"/></param>
         /// <returns>The value of <paramref name="tree"/>'s member <paramref name="memberName"/>, or <paramref name="defaultValue"/> if tree is null or no such member exists</returns>
+        [Obsolete] // Fern doesn't suggest using this, this will return defaultValue or JToken
         public static object getTree(TreeDict tree, string memberName, object defaultValue = null)
         {
             if (tree == null) return defaultValue;
-            if (!tree.TryGetValue(memberName, out object result))
+            if (!tree.TryGetValue(memberName, out JToken result))
                 return defaultValue;
             return result;
         }
@@ -328,7 +342,7 @@ namespace CustomJSONData
             if (highPriority == null) return lowPriority;
             if (lowPriority == null) return highPriority;
             TreeDict result = copySubtrees ? copy(lowPriority) : shallowCopy(lowPriority);
-            foreach (KeyValuePair<string, object> pair in highPriority)
+            foreach (KeyValuePair<string, JToken> pair in highPriority)
             {
                 if (pair.Value is TreeType)
                 {
@@ -362,7 +376,7 @@ namespace CustomJSONData
         public static void map(TreeType tree, Action<TreeDict> action)
         {
             action(tree);
-            foreach (KeyValuePair<string, object> pair in tree)
+            foreach (KeyValuePair<string, JToken> pair in tree)
             {
                 if (pair.Value is TreeType t)
                 {
@@ -390,7 +404,7 @@ namespace CustomJSONData
         {
             TreeType newTree = func(doCopy ? copy(tree) : tree);
             List<string> treeKeys = new List<string>();
-            foreach (KeyValuePair<string, object> pair in newTree)
+            foreach (KeyValuePair<string, JToken> pair in newTree)
             {
                 if (pair.Value is TreeType)
                 {
@@ -451,7 +465,7 @@ namespace CustomJSONData
                 newSeen.UnionWith(parents);
 
                 // if all subtrees are valid, this tree is valid
-                return (child as TreeDict).All(p => isTreeInternal(p.Value, newSeen));
+                return (child as TreeDict).All<KeyValuePair<string, JToken>>(p => isTreeInternal(p.Value, newSeen));
             }
 
             return isTreeType(o) && isTreeInternal(o, new HashSet<object>());
