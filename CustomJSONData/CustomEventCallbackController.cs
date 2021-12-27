@@ -88,7 +88,8 @@ namespace CustomJSONData
                     }
 
                     // Events are before/during start
-                    if (customEventData.time <= SpawningStartTime)
+                    // This should only be done if the starting time is 0
+                    if (customEventData.time <= SpawningStartTime && SpawningStartTime == 0)
                     {
                         start = true;
                         // TODO: Pause the song so the audio doesn't play while loading?
