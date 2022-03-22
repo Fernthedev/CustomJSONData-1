@@ -20,7 +20,7 @@ namespace CustomJSONData.CustomBeatmap
         private const string _tailLayer = "ty";
         private const string _eventBoxes = "e";
         private const string _groupId = "g";
-        private const string _indexFilter = "i";
+        private const string _indexFilter = "f";
         private const string _beatDistributionParam = "w";
         private const string _beatDistributionParamType = "d";
 
